@@ -1,0 +1,57 @@
+@startuml
+skinparam style strictuml
+skinparam classAttributeIconSize 0
+title DermaInsight - System Code Diagram C4
+
+' === ORM Modelleri ===
+class User
+class Disease
+class DiseaseInfo
+class CsvDetail
+
+User --> DiseaseInfo : has_many (is_patient_of)
+Disease --> DiseaseInfo : has_many (is_diagnosed_as)
+CsvDetail --> Disease : belongs_to (is_classified_as)
+
+' === CRUD/Servis Katmanı ===
+class DatabaseService {
+}
+
+DatabaseService --> User : queries
+DatabaseService --> Disease : queries
+DatabaseService --> DiseaseInfo : queries
+DatabaseService --> CsvDetail : queries
+DatabaseService --> SkinDiseaseClassifier : predict_image()
+
+' === AI Model Katmanı ===
+class ResNetFineTune
+class SkinDiseaseClassifier {
+  +predict(image_path)
+}
+SkinDiseaseClassifier --> ResNetFineTune : uses (resnet18)
+
+' === FastAPI Uygulama Katmanı ===
+class DermaInsightAPI {
+}
+DermaInsightAPI --> DatabaseService : calls CRUD
+DermaInsightAPI --> SkinDiseaseClassifier : AI predict
+DermaInsightAPI --> UserSchema
+DermaInsightAPI --> DiseaseSchema
+DermaInsightAPI --> CsvDetailSchema
+
+' === DTO & Şemalar ===
+class UserSchema
+class DiseaseSchema
+class DiseaseInfoSchema
+class CsvDetailSchema
+
+UserSchema ..|> BaseModel
+DiseaseSchema ..|> BaseModel
+DiseaseInfoSchema ..|> BaseModel
+CsvDetailSchema ..|> BaseModel
+
+DiseaseInfoSchema --> UserSchema : doctor / patient
+DiseaseInfoSchema --> DiseaseSchema : disease
+CsvDetailSchema --> DiseaseSchema : disease
+
+@enduml
